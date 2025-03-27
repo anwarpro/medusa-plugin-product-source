@@ -89,7 +89,9 @@ Click Add Brand, enter the required details, and save.
 
 2. Edit an existing product or create a new one.
 
-3. Select a brand from the dropdown list.
+3. Go to product detail section.
+
+3. From sidebar edit brand section and select a brand from the dropdown list.
 
 4. Save the changes.
 
