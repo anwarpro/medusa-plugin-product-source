@@ -1,13 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { HttpTypes } from "@medusajs/framework/types";
-import { sdk } from "../../utils/sdk";
 import { Button, Drawer, Heading, Label, toast } from "@medusajs/ui";
-import { KeyboundForm } from "../../components/common/keybound-form";
 import { Controller, useForm } from "react-hook-form";
-import SelectComponent from "../../components/common/select";
-import ErrorMessage from "../../components/common/ErrorMessage";
 import { PencilSquare } from "@medusajs/icons";
+import { sdk } from "../../../../../utils/sdk";
+import { KeyboundForm } from "../../../../../components/common/keybound-form";
+import SelectComponent from "../../../../../components/common/select";
+import ErrorMessage from "../../../../../components/common/ErrorMessage";
 
 const AddProductBrand = () => {
   const params = useParams();
