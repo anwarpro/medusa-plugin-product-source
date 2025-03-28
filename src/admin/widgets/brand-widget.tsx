@@ -5,7 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { sdk } from "../utils/sdk";
 import { useQuery } from "@tanstack/react-query";
 import { HttpTypes } from "@medusajs/framework/types";
-import AddProductBrand from "./components/add-product-brand";
+import AddProductBrand from "../routes/settings/brand/detail/components/add-product-brand";
 
 const BrandWidget = () => {
   const params = useParams();
