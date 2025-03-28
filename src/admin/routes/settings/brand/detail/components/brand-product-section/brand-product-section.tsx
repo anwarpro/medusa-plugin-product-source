@@ -35,7 +35,7 @@ export const BrandProductSection = ({ brand }: BrandProductSectionProps) => {
           "Content-Type": "application/json",
         },
         query: {
-          id: brand.product_ids.length ? brand.product_ids : [""],
+          id: brand.product_ids?.length ? brand.product_ids : [""],
         },
       }),
     queryKey: ["products"],
@@ -48,7 +48,7 @@ export const BrandProductSection = ({ brand }: BrandProductSectionProps) => {
     columns,
     data: productsData?.products || [],
     getRowId: (product) => product.id,
-    rowCount: productsData?.products.length,
+    rowCount: productsData?.products?.length,
     isLoading: false,
     pagination: {
       onPaginationChange: () => {},

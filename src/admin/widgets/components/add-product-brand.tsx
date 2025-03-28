@@ -56,7 +56,11 @@ const AddProductBrand = () => {
             body: {
               additional_data: {
                 brand_id: brand || null,
+                old_brand_id: data?.product?.brand?.id ?? null,
               },
+            },
+            headers: {
+              "Content-Type": "application/json",
             },
           }
         );

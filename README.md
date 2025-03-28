@@ -38,7 +38,7 @@ This starter is compatible with versions >= 2.4.0 of `@medusajs/medusa`.
 
 ## Installation
 
-To install the @tsc_tech/medusa-plugin-auth-passkey, run the following command:
+To install the @tsc_tech/medusa-plugin-brand, run the following command:
 
 ```
 npm install @tsc_tech/medusa-plugin-brand

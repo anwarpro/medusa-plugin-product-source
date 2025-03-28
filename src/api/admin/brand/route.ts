@@ -16,7 +16,7 @@ export const POST = async (
     req.scope.resolve(BRAND_MODULE);
 
   const query = req.scope.resolve("query");
-
+  //
   const { data: brandExists } = await query.graph({
     entity: "brand",
     fields: ["*"],
