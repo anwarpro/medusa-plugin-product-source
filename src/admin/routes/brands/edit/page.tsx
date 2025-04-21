@@ -1,9 +1,9 @@
 import { Button, Heading, Input, Label, toast } from "@medusajs/ui";
-import { RouteDrawer } from "../../../../components/common/modals/route-drawer";
-import { KeyboundForm } from "../../../../components/common/keybound-form";
 import { Controller, useForm } from "react-hook-form";
-import ErrorMessage from "../../../../components/common/ErrorMessage";
 import { useNavigate, useLocation } from "react-router-dom";
+import { RouteDrawer } from "../../../components/common/modals/route-drawer";
+import { KeyboundForm } from "../../../components/common/keybound-form";
+import ErrorMessage from "../../../components/common/ErrorMessage";
 
 const editBrand = async (data: { name: string; id: string }) => {
   try {
@@ -37,7 +37,7 @@ const BrandEdit = () => {
         id: state.id,
       });
       toast.success("Brand updated successfully");
-      navigate(`/settings/brand`);
+      navigate(`/brands`);
     } catch (error: any) {
       toast.error(
         error?.message || "Failed to update brand. Please try again."

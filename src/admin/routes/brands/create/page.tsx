@@ -1,11 +1,11 @@
 import { Button, Heading, Input, Label, Text, toast } from "@medusajs/ui";
-import { RouteFocusModal } from "../../../../components/common/modals";
 import { Controller, useForm } from "react-hook-form";
-import ErrorMessage from "../../../../components/common/ErrorMessage";
-import { KeyboundForm } from "../../../../components/common/keybound-form";
 import { useNavigate } from "react-router-dom";
 
 import { z } from "zod";
+import { RouteFocusModal } from "../../../components/common/modals";
+import { KeyboundForm } from "../../../components/common/keybound-form";
+import ErrorMessage from "../../../components/common/ErrorMessage";
 
 const CreateProductTypeSchema = z.object({
   value: z.string().min(1),
@@ -39,9 +39,9 @@ const CreateBrand = () => {
 
   const handleSubmit = form.handleSubmit(async (values) => {
     try {
-      const createdBrand = await createBrand({ name: values.value });
+      await createBrand({ name: values.value });
       toast.success("Brand created successfully");
-      navigate("/settings/brand");
+      navigate("/brands");
     } catch (error: any) {
       toast.error(
         error?.message || "Failed to create brand. Please try again."

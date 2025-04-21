@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { ControllerRenderProps, FieldValues } from "react-hook-form";
-import { Brand } from "../../../routes/settings/brand/list/page";
+
 import { toast } from "@medusajs/ui";
 import Combobox from "../combobox/combobox";
+import { Brand } from "../../../routes/brands/list/page";
 
 type Props = {
   field: ControllerRenderProps<FieldValues, string>;
@@ -16,8 +17,12 @@ type Props = {
 const SelectComponent = (props: Props) => {
   const [searchValue, setSearchValue] = useState("");
   const [isCreatingBrand, setIsCreatingBrand] = useState(false);
-  const [localBrandList, setLocalBrandList] = useState<Brand[]>(props.brandList);
-  const [selectedValue, setSelectedValue] = useState<string>(props.value || props.defaultValue || "");
+  const [localBrandList, setLocalBrandList] = useState<Brand[]>(
+    props.brandList
+  );
+  const [selectedValue, setSelectedValue] = useState<string>(
+    props.value || props.defaultValue || ""
+  );
   const [forceUpdate, setForceUpdate] = useState(0);
   const newlyCreatedBrandRef = useRef<string | null>(null);
 
@@ -36,7 +41,7 @@ const SelectComponent = (props: Props) => {
     if (newlyCreatedBrandRef.current) {
       setSelectedValue(newlyCreatedBrandRef.current);
       newlyCreatedBrandRef.current = null;
-      setForceUpdate(prev => prev + 1);
+      setForceUpdate((prev) => prev + 1);
     }
   }, [localBrandList]);
 
@@ -48,15 +53,19 @@ const SelectComponent = (props: Props) => {
   // Convert brand list to options format for Combobox
   const options = [
     // Add "Create brand" option if search value doesn't match any existing brand
-    ...(searchValue && !brandExists ? [{
-      label: `Create brand "${searchValue}"`,
-      value: `__create__${searchValue}`
-    }] : []),
+    ...(searchValue && !brandExists
+      ? [
+          {
+            label: `Create brand "${searchValue}"`,
+            value: `__create__${searchValue}`,
+          },
+        ]
+      : []),
     // Add all existing brands
-    ...localBrandList.map(brand => ({
+    ...localBrandList.map((brand) => ({
       label: brand.name,
-      value: brand.id
-    }))
+      value: brand.id,
+    })),
   ];
 
   const handleCreateBrand = async (brandName: string) => {
@@ -82,7 +91,7 @@ const SelectComponent = (props: Props) => {
       newlyCreatedBrandRef.current = data.brand.id;
 
       // Update local brand list with the new brand
-      setLocalBrandList(prevBrands => [...prevBrands, data.brand]);
+      setLocalBrandList((prevBrands) => [...prevBrands, data.brand]);
 
       // Call the callback with the new brand
       if (props.onBrandCreated) {
@@ -106,8 +115,8 @@ const SelectComponent = (props: Props) => {
       key={forceUpdate} // Force re-render when needed
       value={selectedValue}
       onChange={(value) => {
-        if (typeof value === 'string' && value.startsWith('__create__')) {
-          const brandName = value.replace('__create__', '');
+        if (typeof value === "string" && value.startsWith("__create__")) {
+          const brandName = value.replace("__create__", "");
           handleCreateBrand(brandName);
         } else {
           setSelectedValue(value as string);

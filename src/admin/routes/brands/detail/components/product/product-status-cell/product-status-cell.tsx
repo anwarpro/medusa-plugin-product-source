@@ -1,5 +1,5 @@
 import { HttpTypes } from "@medusajs/types";
-import { StatusCell } from "../../../../../../../components/common/status-cell";
+import { StatusCell } from "../../../../../../components/common/status-cell";
 
 type ProductStatusCellProps = {
   status: HttpTypes.AdminProductStatus;

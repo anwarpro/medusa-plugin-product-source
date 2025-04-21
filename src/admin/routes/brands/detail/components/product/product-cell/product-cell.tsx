@@ -1,5 +1,5 @@
 import { HttpTypes } from "@medusajs/types";
-import { Thumbnail } from "../../../../../../../components/common/thumbnail";
+import { Thumbnail } from "../../../../../../components/common/thumbnail";
 
 type ProductCellProps = {
   product: Pick<HttpTypes.AdminProduct, "thumbnail" | "title">;

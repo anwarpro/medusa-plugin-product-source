@@ -9,10 +9,11 @@ import {
 } from "@medusajs/ui";
 
 import { Brand } from "../../../list/page";
-import { sdk } from "../../../../../../utils/sdk";
+
 import { useQuery } from "@tanstack/react-query";
 import { HttpTypes } from "@medusajs/framework/types";
-import { useProductTableColumns } from "../../../../../../hooks/use-product-table-columns";
+import { sdk } from "../../../../../utils/sdk";
+import { useProductTableColumns } from "../../../../../hooks/use-product-table-columns";
 
 type BrandProductSectionProps = {
   brand: Brand;

@@ -1,5 +1,5 @@
 import { HttpTypes } from "@medusajs/types";
-import { PlaceholderCell } from "../../../../../../../components/common/placeholder-cell";
+import { PlaceholderCell } from "../../../../../../components/common/placeholder-cell";
 
 type CollectionCellProps = {
   collection?: HttpTypes.AdminCollection | null;

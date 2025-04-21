@@ -5,23 +5,23 @@ import { HttpTypes } from "@medusajs/types";
 import {
   ProductCell,
   ProductHeader,
-} from "../routes/settings/brand/detail/components/product/product-cell";
+} from "../routes/brands/detail/components/product/product-cell";
 import {
   CollectionCell,
   CollectionHeader,
-} from "../routes/settings/brand/detail/components/product/collection-cell";
+} from "../routes/brands/detail/components/product/collection-cell";
 import {
   SalesChannelHeader,
   SalesChannelsCell,
-} from "../routes/settings/brand/detail/components/product/sales-channels-cell";
+} from "../routes/brands/detail/components/product/sales-channels-cell";
 import {
   VariantCell,
   VariantHeader,
-} from "../routes/settings/brand/detail/components/product/variant-cell";
+} from "../routes/brands/detail/components/product/variant-cell";
 import {
   ProductStatusCell,
   ProductStatusHeader,
-} from "../routes/settings/brand/detail/components/product/product-status-cell";
+} from "../routes/brands/detail/components/product/product-status-cell";
 
 const columnHelper = createColumnHelper<HttpTypes.AdminProduct>();
 

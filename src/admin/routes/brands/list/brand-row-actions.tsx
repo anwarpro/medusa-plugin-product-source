@@ -1,8 +1,8 @@
 import { PencilSquare, Trash } from "@medusajs/icons";
 import { Brand } from "./page";
-import { useDeleteBrandAction } from "../../../../hooks/use-delete-brand-action";
-import { ActionMenu } from "../../../../components/common/action-menu";
 import { useNavigate } from "react-router-dom";
+import { useDeleteBrandAction } from "../../../hooks/use-delete-brand-action";
+import { ActionMenu } from "../../../components/common/action-menu";
 
 type BrandRowActionsProps = {
   brand: Brand;
@@ -14,7 +14,7 @@ export const BrandRowActions = ({ brand }: BrandRowActionsProps) => {
   const handleDelete = useDeleteBrandAction(brand.id, brand.name);
 
   const handleEdit = async () => {
-    navigate("/settings/brand/edit", { state: brand });
+    navigate("/brands/edit", { state: brand });
   };
 
   return (

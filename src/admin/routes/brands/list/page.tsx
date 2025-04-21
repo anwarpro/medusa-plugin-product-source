@@ -5,9 +5,9 @@ import {
 } from "@medusajs/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { sdk } from "../../../../utils/sdk";
 import { BrandRowActions } from "./brand-row-actions";
 import { useNavigate } from "react-router-dom";
+import { sdk } from "../../../utils/sdk";
 
 export interface Brand {
   [x: string]: any;
@@ -88,7 +88,7 @@ const BrandList = () => {
       },
     },
     onRowClick: (event, row) => {
-      navigate(`/settings/brand/detail`, {
+      navigate(`/brands/detail`, {
         state: row.original,
       });
     },
