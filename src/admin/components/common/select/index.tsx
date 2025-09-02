@@ -3,110 +3,110 @@ import { ControllerRenderProps, FieldValues } from "react-hook-form";
 
 import { toast } from "@medusajs/ui";
 import Combobox from "../combobox/combobox";
-import { Brand } from "../../../routes/brands/list/page";
+import { Brand } from "../../../routes/sources/list/page";
 
 type Props = {
   field: ControllerRenderProps<FieldValues, string>;
   onChange: (...event: any[]) => void;
   value: string;
-  brandList: Brand[];
+  sourceList: Source[];
   defaultValue?: string;
-  onBrandCreated?: (newBrand: Brand) => void;
+  onSourceCreated?: (newSource: Source) => void;
 };
 
 const SelectComponent = (props: Props) => {
   const [searchValue, setSearchValue] = useState("");
-  const [isCreatingBrand, setIsCreatingBrand] = useState(false);
-  const [localBrandList, setLocalBrandList] = useState<Brand[]>(
-    props.brandList
+  const [isCreatingSource, setIsCreatingSource] = useState(false);
+  const [localSourceList, setLocalSourceList] = useState<Source[]>(
+    props.sourceList
   );
   const [selectedValue, setSelectedValue] = useState<string>(
     props.value || props.defaultValue || ""
   );
   const [forceUpdate, setForceUpdate] = useState(0);
-  const newlyCreatedBrandRef = useRef<string | null>(null);
+  const newlyCreatedSourceRef = useRef<string | null>(null);
 
-  // Update local brand list when props.brandList changes
+  // Update local source list when props.sourceList changes
   useEffect(() => {
-    setLocalBrandList(props.brandList);
-  }, [props.brandList]);
+    setLocalSourceList(props.sourceList);
+  }, [props.sourceList]);
 
   // Update selected value when props.value changes
   useEffect(() => {
     setSelectedValue(props.value || props.defaultValue || "");
   }, [props.value, props.defaultValue]);
 
-  // Effect to handle newly created brand selection
+  // Effect to handle newly created source selection
   useEffect(() => {
-    if (newlyCreatedBrandRef.current) {
-      setSelectedValue(newlyCreatedBrandRef.current);
-      newlyCreatedBrandRef.current = null;
+    if (newlyCreatedSourceRef.current) {
+      setSelectedValue(newlyCreatedSourceRef.current);
+      newlyCreatedSourceRef.current = null;
       setForceUpdate((prev) => prev + 1);
     }
-  }, [localBrandList]);
+  }, [localSourceList]);
 
-  // Check if the search value exactly matches any existing brand
-  const brandExists = localBrandList.some(
-    (brand) => brand.name.toLowerCase() === searchValue.toLowerCase()
+  // Check if the search value exactly matches any existing source
+  const sourceExists = localSourceList.some(
+    (source) => source.name.toLowerCase() === searchValue.toLowerCase()
   );
 
-  // Convert brand list to options format for Combobox
+  // Convert source list to options format for Combobox
   const options = [
-    // Add "Create brand" option if search value doesn't match any existing brand
-    ...(searchValue && !brandExists
+    // Add "Create source" option if search value doesn't match any existing source
+    ...(searchValue && !sourceExists
       ? [
           {
-            label: `Create brand "${searchValue}"`,
+            label: `Create source "${searchValue}"`,
             value: `__create__${searchValue}`,
           },
         ]
       : []),
-    // Add all existing brands
-    ...localBrandList.map((brand) => ({
-      label: brand.name,
-      value: brand.id,
+    // Add all existing sources
+    ...localSourceList.map((source) => ({
+      label: source.name,
+      value: source.id,
     })),
   ];
 
-  const handleCreateBrand = async (brandName: string) => {
+  const handleCreateSource = async (sourceName: string) => {
     try {
-      setIsCreatingBrand(true);
-      const response = await fetch(`/admin/brand`, {
+      setIsCreatingSource(true);
+      const response = await fetch(`/admin/source`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: brandName }),
+        body: JSON.stringify({ name: sourceName }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create brand");
+        throw new Error(errorData.message || "Failed to create source");
       }
 
       const data = await response.json();
-      toast.success("Brand created successfully");
+      toast.success("Source created successfully");
 
-      // Store the new brand ID for selection
-      newlyCreatedBrandRef.current = data.brand.id;
+      // Store the new source ID for selection
+      newlyCreatedSourceRef.current = data.source.id;
 
-      // Update local brand list with the new brand
-      setLocalBrandList((prevBrands) => [...prevBrands, data.brand]);
+      // Update local source list with the new source
+      setLocalSourceList((prevSources) => [...prevSources, data.source]);
 
-      // Call the callback with the new brand
-      if (props.onBrandCreated) {
-        props.onBrandCreated(data.brand);
+      // Call the callback with the new source
+      if (props.onSourceCreated) {
+        props.onSourceCreated(data.source);
       }
 
-      // Update the form with the new brand ID
-      props.onChange(data.brand.id);
+      // Update the form with the new source ID
+      props.onChange(data.source.id);
 
       // Clear the search value
       setSearchValue("");
     } catch (error: any) {
-      toast.error(error.message || "Failed to create brand");
+      toast.error(error.message || "Failed to create source");
     } finally {
-      setIsCreatingBrand(false);
+      setIsCreatingSource(false);
     }
   };
 
@@ -116,18 +116,18 @@ const SelectComponent = (props: Props) => {
       value={selectedValue}
       onChange={(value) => {
         if (typeof value === "string" && value.startsWith("__create__")) {
-          const brandName = value.replace("__create__", "");
-          handleCreateBrand(brandName);
+          const sourceName = value.replace("__create__", "");
+          handleCreateSource(sourceName);
         } else {
           setSelectedValue(value as string);
           props.onChange(value);
         }
       }}
       options={options}
-      placeholder="Select Brand"
+      placeholder="Select Source"
       searchValue={searchValue}
       onSearchValueChange={setSearchValue}
-      disabled={isCreatingBrand}
+      disabled={isCreatingSource}
     />
   );
 };

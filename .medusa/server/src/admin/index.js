@@ -265,72 +265,72 @@ const Combobox = ({
 };
 const SelectComponent = (props) => {
   const [searchValue, setSearchValue] = React.useState("");
-  const [isCreatingBrand, setIsCreatingBrand] = React.useState(false);
-  const [localBrandList, setLocalBrandList] = React.useState(
-    props.brandList
+  const [isCreatingSource, setIsCreatingSource] = React.useState(false);
+  const [localSourceList, setLocalSourceList] = React.useState(
+    props.sourceList
   );
   const [selectedValue, setSelectedValue] = React.useState(
     props.value || props.defaultValue || ""
   );
   const [forceUpdate, setForceUpdate] = React.useState(0);
-  const newlyCreatedBrandRef = React.useRef(null);
+  const newlyCreatedSourceRef = React.useRef(null);
   React.useEffect(() => {
-    setLocalBrandList(props.brandList);
-  }, [props.brandList]);
+    setLocalSourceList(props.sourceList);
+  }, [props.sourceList]);
   React.useEffect(() => {
     setSelectedValue(props.value || props.defaultValue || "");
   }, [props.value, props.defaultValue]);
   React.useEffect(() => {
-    if (newlyCreatedBrandRef.current) {
-      setSelectedValue(newlyCreatedBrandRef.current);
-      newlyCreatedBrandRef.current = null;
+    if (newlyCreatedSourceRef.current) {
+      setSelectedValue(newlyCreatedSourceRef.current);
+      newlyCreatedSourceRef.current = null;
       setForceUpdate((prev) => prev + 1);
     }
-  }, [localBrandList]);
-  const brandExists = localBrandList.some(
-    (brand) => brand.name.toLowerCase() === searchValue.toLowerCase()
+  }, [localSourceList]);
+  const sourceExists = localSourceList.some(
+    (source) => source.name.toLowerCase() === searchValue.toLowerCase()
   );
   const options = [
-    // Add "Create brand" option if search value doesn't match any existing brand
-    ...searchValue && !brandExists ? [
+    // Add "Create source" option if search value doesn't match any existing source
+    ...searchValue && !sourceExists ? [
       {
-        label: `Create brand "${searchValue}"`,
+        label: `Create source "${searchValue}"`,
         value: `__create__${searchValue}`
       }
     ] : [],
-    // Add all existing brands
-    ...localBrandList.map((brand) => ({
-      label: brand.name,
-      value: brand.id
+    // Add all existing sources
+    ...localSourceList.map((source) => ({
+      label: source.name,
+      value: source.id
     }))
   ];
-  const handleCreateBrand = async (brandName) => {
+  const handleCreateSource = async (sourceName) => {
     try {
-      setIsCreatingBrand(true);
-      const response = await fetch(`/admin/brand`, {
+      setIsCreatingSource(true);
+      const response = await fetch(`/admin/source`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ name: brandName })
+        body: JSON.stringify({ name: sourceName })
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create brand");
+        throw new Error(errorData.message || "Failed to create source");
       }
       const data = await response.json();
-      ui.toast.success("Brand created successfully");
-      newlyCreatedBrandRef.current = data.brand.id;
-      setLocalBrandList((prevBrands) => [...prevBrands, data.brand]);
-      if (props.onBrandCreated) {
-        props.onBrandCreated(data.brand);
+      ui.toast.success("Source created successfully");
+      newlyCreatedSourceRef.current = data.source.id;
+      setLocalSourceList((prevSources) => [...prevSources, data.source]);
+      if (props.onSourceCreated) {
+        props.onSourceCreated(data.source);
       }
-      props.onChange(data.brand.id);
+      props.onChange(data.source.id);
       setSearchValue("");
     } catch (error) {
-      ui.toast.error(error.message || "Failed to create brand");
+      ui.toast.error(error.message || "Failed to create source");
     } finally {
-      setIsCreatingBrand(false);
+      setIsCreatingSource(false);
     }
   };
   return /* @__PURE__ */ jsxRuntime.jsx(
@@ -339,18 +339,18 @@ const SelectComponent = (props) => {
       value: selectedValue,
       onChange: (value) => {
         if (typeof value === "string" && value.startsWith("__create__")) {
-          const brandName = value.replace("__create__", "");
-          handleCreateBrand(brandName);
+          const sourceName = value.replace("__create__", "");
+          handleCreateSource(sourceName);
         } else {
           setSelectedValue(value);
           props.onChange(value);
         }
       },
       options,
-      placeholder: "Select Brand",
+      placeholder: "Select Source",
       searchValue,
       onSearchValueChange: setSearchValue,
-      disabled: isCreatingBrand
+      disabled: isCreatingSource
     },
     forceUpdate
   );
@@ -359,39 +359,42 @@ const ErrorMessage = (props) => {
   var _a, _b;
   return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: props.form.formState.errors[props.field] && /* @__PURE__ */ jsxRuntime.jsx("p", { className: "text-red-500 text-sm", children: (_b = (_a = props.form.formState.errors[props.field]) == null ? void 0 : _a.message) == null ? void 0 : _b.toString() }) });
 };
-const AddProductBrand = () => {
+const AddProductSource = () => {
   var _a, _b;
   const params = reactRouterDom.useParams();
   const navigate = reactRouterDom.useNavigate();
   const { data } = reactQuery.useQuery({
-    queryFn: () => sdk.client.fetch(`/admin/products/${params == null ? void 0 : params.id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      query: {
-        fields: "brand.*"
+    queryFn: () => sdk.client.fetch(
+      `/admin/products/${params == null ? void 0 : params.id}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        query: {
+          fields: "source.*"
+        }
       }
-    }),
+    ),
     queryKey: ["products"],
     refetchOnMount: "always"
   });
-  const { data: brands } = reactQuery.useQuery({
-    queryFn: () => sdk.client.fetch(`/admin/brand`, {
+  const { data: sources } = reactQuery.useQuery({
+    queryFn: () => sdk.client.fetch(`/admin/source`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
       }
     }),
-    queryKey: ["brands"],
+    queryKey: ["sources"],
     refetchOnMount: "always"
   });
   const form = reactHookForm.useForm({
     defaultValues: {
-      brand: (_b = (_a = data == null ? void 0 : data.product) == null ? void 0 : _a.brand) == null ? void 0 : _b.id
+      source: (_b = (_a = data == null ? void 0 : data.product) == null ? void 0 : _a.source) == null ? void 0 : _b.id
     }
   });
-  const handleSubmit = async ({ brand }) => {
+  const handleSubmit = async ({ source }) => {
     var _a2, _b2, _c;
     try {
       const productUpdate = await sdk.client.fetch(
@@ -400,8 +403,8 @@ const AddProductBrand = () => {
           method: "POST",
           body: {
             additional_data: {
-              brand_id: brand || null,
-              old_brand_id: ((_c = (_b2 = data == null ? void 0 : data.product) == null ? void 0 : _b2.brand) == null ? void 0 : _c.id) ?? null
+              source_id: source || null,
+              old_source_id: ((_c = (_b2 = data == null ? void 0 : data.product) == null ? void 0 : _b2.source) == null ? void 0 : _c.id) ?? null
             }
           },
           headers: {
@@ -410,13 +413,13 @@ const AddProductBrand = () => {
         }
       );
       navigate(0);
-      ui.toast.success("Brand edited successfully...");
+      ui.toast.success("Source edited successfully...");
     } catch (error) {
       ui.toast.error(error.message || "Something went wrong...");
     }
   };
   return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-between px-6 py-4", children: [
-    /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { level: "h2", children: "Product Brand" }),
+    /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { level: "h2", children: "Product Source" }),
     /* @__PURE__ */ jsxRuntime.jsxs(ui.Drawer, { children: [
       /* @__PURE__ */ jsxRuntime.jsx(ui.Drawer.Trigger, { asChild: true, children: /* @__PURE__ */ jsxRuntime.jsx(ui.Button, { variant: "primary", children: /* @__PURE__ */ jsxRuntime.jsx(icons.PencilSquare, {}) }) }),
       /* @__PURE__ */ jsxRuntime.jsx(ui.Drawer.Content, { children: /* @__PURE__ */ jsxRuntime.jsxs(
@@ -425,15 +428,15 @@ const AddProductBrand = () => {
           onSubmit: form.handleSubmit(handleSubmit),
           className: "flex flex-1 flex-col",
           children: [
-            /* @__PURE__ */ jsxRuntime.jsx(ui.Drawer.Header, { children: /* @__PURE__ */ jsxRuntime.jsx(ui.Drawer.Title, { children: "Edit Product Brand" }) }),
+            /* @__PURE__ */ jsxRuntime.jsx(ui.Drawer.Header, { children: /* @__PURE__ */ jsxRuntime.jsx(ui.Drawer.Title, { children: "Edit Product Source" }) }),
             /* @__PURE__ */ jsxRuntime.jsx(ui.Drawer.Body, { className: "p-4 flex flex-1", children: /* @__PURE__ */ jsxRuntime.jsx(
               reactHookForm.Controller,
               {
                 rules: {
-                  required: "Brand is required"
+                  required: "Source is required"
                 },
                 control: form.control,
-                name: "brand",
+                name: "source",
                 render: ({ field }) => {
                   var _a2, _b2;
                   return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col w-full gap-2", children: [
@@ -441,8 +444,8 @@ const AddProductBrand = () => {
                     /* @__PURE__ */ jsxRuntime.jsx(
                       SelectComponent,
                       {
-                        defaultValue: (_b2 = (_a2 = data == null ? void 0 : data.product) == null ? void 0 : _a2.brand) == null ? void 0 : _b2.id,
-                        brandList: brands.brands,
+                        defaultValue: (_b2 = (_a2 = data == null ? void 0 : data.product) == null ? void 0 : _a2.source) == null ? void 0 : _b2.id,
+                        sourceList: sources.sources,
                         field,
                         ...field
                       }
@@ -462,29 +465,32 @@ const AddProductBrand = () => {
     ] })
   ] });
 };
-const BrandWidget = () => {
+const SourceWidget = () => {
   var _a, _b, _c;
   const params = reactRouterDom.useParams();
   const { data } = reactQuery.useQuery({
-    queryFn: () => sdk.client.fetch(`/admin/products/${params == null ? void 0 : params.id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      query: {
-        fields: "brand.*"
+    queryFn: () => sdk.client.fetch(
+      `/admin/products/${params == null ? void 0 : params.id}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        query: {
+          fields: "source.*"
+        }
       }
-    }),
+    ),
     queryKey: ["products"],
     refetchOnMount: "always"
   });
   return /* @__PURE__ */ jsxRuntime.jsxs(ui.Container, { className: "divide-y p-0", children: [
-    /* @__PURE__ */ jsxRuntime.jsx(AddProductBrand, {}),
+    /* @__PURE__ */ jsxRuntime.jsx(AddProductSource, {}),
     /* @__PURE__ */ jsxRuntime.jsx(
       SectionRow,
       {
-        title: "Brand",
-        value: ((_b = (_a = data == null ? void 0 : data.product) == null ? void 0 : _a.brand) == null ? void 0 : _b.name) ? /* @__PURE__ */ jsxRuntime.jsx(OrganizationTag, { label: (_c = data == null ? void 0 : data.product) == null ? void 0 : _c.brand.name, to: `/brands` }) : void 0
+        title: "Source",
+        value: ((_b = (_a = data == null ? void 0 : data.product) == null ? void 0 : _a.source) == null ? void 0 : _b.name) ? /* @__PURE__ */ jsxRuntime.jsx(OrganizationTag, { label: (_c = data == null ? void 0 : data.product) == null ? void 0 : _c.source.name, to: `/sources` }) : void 0
       }
     )
   ] });
@@ -495,9 +501,9 @@ const OrganizationTag = ({ label, to }) => {
 adminSdk.defineWidgetConfig({
   zone: "product.details.side.after"
 });
-const deleteBrand = async (brandId) => {
+const deleteSource = async (sourceId) => {
   try {
-    const response = await fetch(`/admin/brand/${brandId}`, {
+    const response = await fetch(`/admin/source/${sourceId}`, {
       method: "DELETE"
     });
     const res = response;
@@ -506,15 +512,15 @@ const deleteBrand = async (brandId) => {
     throw error;
   }
 };
-const handleDeleteBrand = async (brandId) => {
+const handleDeleteSource = async (sourceId) => {
   try {
-    await deleteBrand(brandId);
-    ui.toast.success("Brand deleted successfully");
+    await deleteSource(sourceId);
+    ui.toast.success("Source deleted successfully");
   } catch (error) {
-    ui.toast.error((error == null ? void 0 : error.message) || "Failed to delete brand. Please try again.");
+    ui.toast.error((error == null ? void 0 : error.message) || "Failed to delete source. Please try again.");
   }
 };
-const useDeleteBrandAction = (id, name) => {
+const useDeleteSourceAction = (id, name) => {
   const prompt = ui.usePrompt();
   const navigate = reactRouterDom.useNavigate();
   const handleDelete = async () => {
@@ -527,7 +533,7 @@ const useDeleteBrandAction = (id, name) => {
     if (!result) {
       return;
     }
-    await handleDeleteBrand(id);
+    await handleDeleteSource(id);
     navigate(0);
   };
   return handleDelete;
@@ -611,11 +617,11 @@ const ActionMenu = ({
     }) })
   ] });
 };
-const BrandRowActions = ({ brand }) => {
+const SourceRowActions = ({ source }) => {
   const navigate = reactRouterDom.useNavigate();
-  const handleDelete = useDeleteBrandAction(brand.id, brand.name);
+  const handleDelete = useDeleteSourceAction(source.id, source.name);
   const handleEdit = async () => {
-    navigate("/brands/edit", { state: brand });
+    navigate("/sources/edit", { state: source });
   };
   return /* @__PURE__ */ jsxRuntime.jsx(
     ActionMenu,
@@ -643,21 +649,21 @@ const BrandRowActions = ({ brand }) => {
     }
   );
 };
-const BrandList = () => {
+const SourceList = () => {
   const navigate = reactRouterDom.useNavigate();
   const { data, isLoading } = reactQuery.useQuery({
-    queryFn: () => sdk.client.fetch(`/admin/brand`, {
+    queryFn: () => sdk.client.fetch(`/admin/source`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
       }
     }),
-    queryKey: ["brand"],
+    queryKey: ["source"],
     refetchOnMount: "always"
   });
-  const brandData = React.useMemo(() => {
-    return (data == null ? void 0 : data.brands) || [];
-  }, [data == null ? void 0 : data.brands]);
+  const sourceData = React.useMemo(() => {
+    return (data == null ? void 0 : data.sources) || [];
+  }, [data == null ? void 0 : data.sources]);
   const columnHelper2 = ui.createDataTableColumnHelper();
   const columns = [
     columnHelper2.accessor("name", {
@@ -690,9 +696,9 @@ const BrandList = () => {
       header: "Actions",
       cell: ({ row }) => {
         return /* @__PURE__ */ jsxRuntime.jsx(
-          BrandRowActions,
+          SourceRowActions,
           {
-            brand: row.original
+            source: row.original
           }
         );
       }
@@ -700,8 +706,8 @@ const BrandList = () => {
   ];
   const table = ui.useDataTable({
     columns,
-    data: brandData,
-    rowCount: brandData.length,
+    data: sourceData,
+    rowCount: sourceData.length,
     isLoading,
     pagination: {
       onPaginationChange: () => {
@@ -712,7 +718,7 @@ const BrandList = () => {
       }
     },
     onRowClick: (event, row) => {
-      navigate(`/brands/detail`, {
+      navigate(`/sources/detail`, {
         state: row.original
       });
     }
@@ -729,20 +735,20 @@ const BrandList = () => {
     }
   ) });
 };
-const BrandPage = () => {
+const SourcePage = () => {
   return /* @__PURE__ */ jsxRuntime.jsxs(ui.Container, { className: "divide-y p-0", children: [
     /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-between px-6 py-4", children: [
       /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-        /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: "Brand List" }),
-        /* @__PURE__ */ jsxRuntime.jsx(ui.Text, { className: "text-ui-fg-subtle", size: "small", children: "Organize your Brands" })
+        /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: "Source List" }),
+        /* @__PURE__ */ jsxRuntime.jsx(ui.Text, { className: "text-ui-fg-subtle", size: "small", children: "Organize your Sources" })
       ] }),
       /* @__PURE__ */ jsxRuntime.jsx(ui.Button, { size: "small", variant: "secondary", asChild: true, children: /* @__PURE__ */ jsxRuntime.jsx(reactRouterDom.Link, { to: "create", children: "Create" }) })
     ] }),
-    /* @__PURE__ */ jsxRuntime.jsx(BrandList, {})
+    /* @__PURE__ */ jsxRuntime.jsx(SourceList, {})
   ] });
 };
 const config = adminSdk.defineRouteConfig({
-  label: "Brand"
+  label: "Source"
 });
 const RouteModalProviderContext = React.createContext(null);
 const RouteModalProvider = ({
@@ -884,9 +890,9 @@ const RouteFocusModal = Object.assign(Root$1, {
 zod.z.object({
   value: zod.z.string().min(1)
 });
-const createBrand = async (data) => {
+const createSource = async (data) => {
   try {
-    const response = await fetch(`/admin/brand`, {
+    const response = await fetch(`/admin/source`, {
       method: "POST",
       body: JSON.stringify(data),
       credentials: "include",
@@ -900,17 +906,17 @@ const createBrand = async (data) => {
     throw error;
   }
 };
-const CreateBrand = () => {
+const CreateSource = () => {
   const form = reactHookForm.useForm();
   const navigate = reactRouterDom.useNavigate();
   const handleSubmit = form.handleSubmit(async (values) => {
     try {
-      await createBrand({ name: values.value });
-      ui.toast.success("Brand created successfully");
-      navigate("/brands");
+      await createSource({ name: values.value });
+      ui.toast.success("Source created successfully");
+      navigate("/sources");
     } catch (error) {
       ui.toast.error(
-        (error == null ? void 0 : error.message) || "Failed to create brand. Please try again."
+        (error == null ? void 0 : error.message) || "Failed to create source. Please try again."
       );
     }
   });
@@ -926,14 +932,14 @@ const CreateBrand = () => {
         ] }) }),
         /* @__PURE__ */ jsxRuntime.jsxs(RouteFocusModal.Body, { className: "flex flex-col p-20 max-w-[720px] gap-4", children: [
           /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex w-full max-w-[720px] flex-col gap-y-8", children: /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: "Create Brand" }),
-            /* @__PURE__ */ jsxRuntime.jsx(ui.Text, { weight: "regular", size: "base", children: "Create a new Brand to categorize your products" })
+            /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: "Create Source" }),
+            /* @__PURE__ */ jsxRuntime.jsx(ui.Text, { weight: "regular", size: "base", children: "Create a new Source to categorize your products" })
           ] }) }),
           /* @__PURE__ */ jsxRuntime.jsx("div", { children: /* @__PURE__ */ jsxRuntime.jsx(
             reactHookForm.Controller,
             {
               rules: {
-                required: "Brand name is required"
+                required: "Source name is required"
               },
               control: form.control,
               name: "value",
@@ -1050,9 +1056,9 @@ const RouteDrawer = Object.assign(Root, {
   Close,
   Form
 });
-const editBrand = async (data) => {
+const editSource = async (data) => {
   try {
-    const response = await fetch(`/admin/brand/${data.id}`, {
+    const response = await fetch(`/admin/source/${data.id}`, {
       method: "PUT",
       body: JSON.stringify(data),
       headers: {
@@ -1065,7 +1071,7 @@ const editBrand = async (data) => {
     throw error;
   }
 };
-const BrandEdit = () => {
+const SourceEdit = () => {
   const navigate = reactRouterDom.useNavigate();
   const { state } = reactRouterDom.useLocation();
   const form = reactHookForm.useForm({
@@ -1075,15 +1081,15 @@ const BrandEdit = () => {
   });
   const handleSubmit = form.handleSubmit(async (data) => {
     try {
-      await editBrand({
+      await editSource({
         name: data.name,
         id: state.id
       });
-      ui.toast.success("Brand updated successfully");
-      navigate(`/brands`);
+      ui.toast.success("Source updated successfully");
+      navigate(`/sources`);
     } catch (error) {
       ui.toast.error(
-        (error == null ? void 0 : error.message) || "Failed to update brand. Please try again."
+        (error == null ? void 0 : error.message) || "Failed to update source. Please try again."
       );
     }
   });
@@ -1093,12 +1099,12 @@ const BrandEdit = () => {
       onSubmit: handleSubmit,
       className: "flex flex-col overflow-hidden flex-1",
       children: [
-        /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer.Header, { children: /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: "Edit Brand" }) }),
+        /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer.Header, { children: /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: "Edit Source" }) }),
         /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer.Body, { className: "flex flex-1 flex-col gap-y-8 overflow-y-auto", children: /* @__PURE__ */ jsxRuntime.jsx(
           reactHookForm.Controller,
           {
             rules: {
-              required: "Brand name is required"
+              required: "Source name is required"
             },
             control: form.control,
             name: "name",
@@ -1119,10 +1125,10 @@ const BrandEdit = () => {
     }
   ) });
 };
-const BrandGeneralSection = ({ brand }) => {
+const SourceGeneralSection = ({ source }) => {
   return /* @__PURE__ */ jsxRuntime.jsxs(ui.Container, { className: "flex items-center justify-between", children: [
-    /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: brand.name }),
-    /* @__PURE__ */ jsxRuntime.jsx(BrandRowActions, { brand })
+    /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: source.name }),
+    /* @__PURE__ */ jsxRuntime.jsx(SourceRowActions, { source })
   ] });
 };
 const Thumbnail = ({ src, alt, size = "base" }) => {
@@ -1270,7 +1276,7 @@ const useProductTableColumns = () => {
     []
   );
 };
-const BrandProductSection = ({ brand }) => {
+const SourceProductSection = ({ source }) => {
   var _a;
   const {
     data: productsData,
@@ -1285,7 +1291,7 @@ const BrandProductSection = ({ brand }) => {
           "Content-Type": "application/json"
         },
         query: {
-          id: ((_a2 = brand.product_ids) == null ? void 0 : _a2.length) ? brand.product_ids : [""]
+          id: ((_a2 = source.product_ids) == null ? void 0 : _a2.length) ? source.product_ids : [""]
         }
       });
     },
@@ -1326,40 +1332,40 @@ const BrandProductSection = ({ brand }) => {
     ) })
   ] });
 };
-const BrandDetail = () => {
+const SourceDetail = () => {
   const { state } = reactRouterDom.useLocation();
   return /* @__PURE__ */ jsxRuntime.jsxs(ui.Container, { className: "flex flex-col gap-4", children: [
-    /* @__PURE__ */ jsxRuntime.jsx(BrandGeneralSection, { brand: state }),
-    /* @__PURE__ */ jsxRuntime.jsx(BrandProductSection, { brand: state })
+    /* @__PURE__ */ jsxRuntime.jsx(SourceGeneralSection, { source: state }),
+    /* @__PURE__ */ jsxRuntime.jsx(SourceProductSection, { source: state })
   ] });
 };
 const widgetModule = { widgets: [
   {
-    Component: BrandWidget,
+    Component: SourceWidget,
     zone: ["product.details.side.after"]
   }
 ] };
 const routeModule = {
   routes: [
     {
-      Component: BrandPage,
-      path: "/brands"
+      Component: SourcePage,
+      path: "/sources"
     },
     {
-      Component: CreateBrand,
-      path: "/brands/create"
+      Component: CreateSource,
+      path: "/sources/create"
     },
     {
-      Component: BrandEdit,
-      path: "/brands/edit"
+      Component: SourceEdit,
+      path: "/sources/edit"
     },
     {
-      Component: BrandDetail,
-      path: "/brands/detail"
+      Component: SourceDetail,
+      path: "/sources/detail"
     },
     {
-      Component: BrandList,
-      path: "/brands/list"
+      Component: SourceList,
+      path: "/sources/list"
     }
   ]
 };
@@ -1368,7 +1374,7 @@ const menuItemModule = {
     {
       label: config.label,
       icon: void 0,
-      path: "/brands",
+      path: "/sources",
       nested: void 0
     }
   ]

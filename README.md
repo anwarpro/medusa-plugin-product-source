@@ -27,38 +27,38 @@ This starter is compatible with versions >= 2.4.0 of `@medusajs/medusa`.
 
 ## Features
 
-- Create, edit, and delete brands.
+- Create, edit, and delete sources.
 
-- Assign brands to products.
+- Assign sources to products.
 
-- API endpoints for managing brands.
+- API endpoints for managing sources.
 
-- Admin dashboard integration for easy brand management.
+- Admin dashboard integration for easy source management.
 
 
 ## Installation
 
-To install the @tsc_tech/medusa-plugin-brand, run the following command:
+To install the @tsc_tech/medusa-plugin-source, run the following command:
 
 ```
-npm install @tsc_tech/medusa-plugin-brand
+npm install @tsc_tech/medusa-plugin-source
 ```
 
 OR
 
 ```
-yarn add @tsc_tech/medusa-plugin-brand
+yarn add @tsc_tech/medusa-plugin-source
 ```
 
 ## Configuration
 
-Step 1: Update Medusa Configuration Modify your medusa-config.ts to include the brand plugin:
+Step 1: Update Medusa Configuration Modify your medusa-config.ts to include the source plugin:
 
 ```
 module.exports = defineConfig({
   plugins: [
     {
-      resolve: "@tsc_tech/medusa-plugin-brand",
+      resolve: "@tsc_tech/medusa-plugin-source",
       options: {},
     },
     ],
@@ -73,17 +73,17 @@ npx medusa db:migrate
 
 ## How to Use
 
-## Adding a Brand via Admin Dashboard
+## Adding a Source via Admin Dashboard
 
 1. Log in to the Medusa Admin panel.
 
 2. Go to Settings.
 
-3. Navigate to Brands in the sidebar.
+3. Navigate to Sources in the sidebar.
 
-Click Add Brand, enter the required details, and save.
+Click Add Source, enter the required details, and save.
 
-## Assigning a Brand to a Product
+## Assigning a Source to a Product
 
 1. Open the Products section in the Admin panel.
 
@@ -91,7 +91,7 @@ Click Add Brand, enter the required details, and save.
 
 3. Go to product detail section.
 
-3. From sidebar edit brand section and select a brand from the dropdown list.
+3. From sidebar edit source section and select a source from the dropdown list.
 
 4. Save the changes.
 
