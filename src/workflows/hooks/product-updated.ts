@@ -44,6 +44,7 @@ export const productUpdatedHookHandler = async ({products, additional_data}, {co
 
         return new StepResponse(links, links);
     }
+
     const query = container.resolve("query");
     const remoteLink = container.resolve(ContainerRegistrationKeys.LINK);
 
