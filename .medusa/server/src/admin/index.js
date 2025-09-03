@@ -8,8 +8,8 @@ const reactQuery = require("@tanstack/react-query");
 const reactHookForm = require("react-hook-form");
 const icons = require("@medusajs/icons");
 const React = require("react");
-const reactTable = require("@tanstack/react-table");
 const zod = require("zod");
+const reactTable = require("@tanstack/react-table");
 const _interopDefault = (e) => e && e.__esModule ? e : { default: e };
 const Medusa__default = /* @__PURE__ */ _interopDefault(Medusa);
 const React__default = /* @__PURE__ */ _interopDefault(React);
@@ -750,6 +750,381 @@ const SourcePage = () => {
 const config = adminSdk.defineRouteConfig({
   label: "Source"
 });
+const RouteModalProviderContext = React.createContext(null);
+const RouteModalProvider = ({
+  prev,
+  children
+}) => {
+  const navigate = reactRouterDom.useNavigate();
+  const [closeOnEscape, setCloseOnEscape] = React.useState(true);
+  const handleSuccess = React.useCallback(
+    (path) => {
+      const to = path || prev;
+      navigate(to, { replace: true, state: { isSubmitSuccessful: true } });
+    },
+    [navigate, prev]
+  );
+  const value = React.useMemo(
+    () => ({
+      handleSuccess,
+      setCloseOnEscape,
+      __internal: { closeOnEscape }
+    }),
+    [handleSuccess, setCloseOnEscape, closeOnEscape]
+  );
+  return /* @__PURE__ */ jsxRuntime.jsx(RouteModalProviderContext.Provider, { value, children });
+};
+const useRouteModal = () => {
+  const context = React.useContext(RouteModalProviderContext);
+  if (!context) {
+    throw new Error("useRouteModal must be used within a RouteModalProvider");
+  }
+  return context;
+};
+const StackedModalContext = React.createContext(null);
+const StackedModalProvider = ({
+  children,
+  onOpenChange
+}) => {
+  const [state, setState] = React.useState({});
+  const getIsOpen = (id) => {
+    return state[id] || false;
+  };
+  const setIsOpen = (id, open) => {
+    setState((prevState) => ({
+      ...prevState,
+      [id]: open
+    }));
+    onOpenChange(open);
+  };
+  const register = (id) => {
+    setState((prevState) => ({
+      ...prevState,
+      [id]: false
+    }));
+  };
+  const unregister = (id) => {
+    setState((prevState) => {
+      const newState = { ...prevState };
+      delete newState[id];
+      return newState;
+    });
+  };
+  return /* @__PURE__ */ jsxRuntime.jsx(
+    StackedModalContext.Provider,
+    {
+      value: {
+        getIsOpen,
+        setIsOpen,
+        register,
+        unregister
+      },
+      children
+    }
+  );
+};
+const useStateAwareTo = (prev) => {
+  const location = reactRouterDom.useLocation();
+  const to = React.useMemo(() => {
+    var _a;
+    const params = (_a = location.state) == null ? void 0 : _a.restore_params;
+    if (!params) {
+      return prev;
+    }
+    return `${prev}?${params.toString()}`;
+  }, [location.state, prev]);
+  return to;
+};
+const Root$1 = ({ prev = "..", children }) => {
+  const navigate = reactRouterDom.useNavigate();
+  const [open, setOpen] = React.useState(false);
+  const [stackedModalOpen, onStackedModalOpen] = React.useState(false);
+  const to = useStateAwareTo(prev);
+  React.useEffect(() => {
+    setOpen(true);
+    return () => {
+      setOpen(false);
+      onStackedModalOpen(false);
+    };
+  }, []);
+  const handleOpenChange = (open2) => {
+    if (!open2) {
+      document.body.style.pointerEvents = "auto";
+      navigate(to, { replace: true });
+      return;
+    }
+    setOpen(open2);
+  };
+  return /* @__PURE__ */ jsxRuntime.jsx(ui.FocusModal, { open, onOpenChange: handleOpenChange, children: /* @__PURE__ */ jsxRuntime.jsx(RouteModalProvider, { prev: to, children: /* @__PURE__ */ jsxRuntime.jsx(StackedModalProvider, { onOpenChange: onStackedModalOpen, children: /* @__PURE__ */ jsxRuntime.jsx(Content, { stackedModalOpen, children }) }) }) });
+};
+const Content = ({ stackedModalOpen, children }) => {
+  const { __internal } = useRouteModal();
+  const shouldPreventClose = !__internal.closeOnEscape;
+  return /* @__PURE__ */ jsxRuntime.jsx(
+    ui.FocusModal.Content,
+    {
+      onEscapeKeyDown: shouldPreventClose ? (e) => {
+        e.preventDefault();
+      } : void 0,
+      className: ui.clx({
+        "!bg-ui-bg-disabled !inset-x-5 !inset-y-3": stackedModalOpen
+      }),
+      children
+    }
+  );
+};
+const Header$1 = ui.FocusModal.Header;
+const Title$1 = ui.FocusModal.Title;
+const Description$1 = ui.FocusModal.Description;
+const Footer$1 = ui.FocusModal.Footer;
+const Body$1 = ui.FocusModal.Body;
+const Close$1 = ui.FocusModal.Close;
+const RouteFocusModal = Object.assign(Root$1, {
+  Header: Header$1,
+  Title: Title$1,
+  Body: Body$1,
+  Description: Description$1,
+  Footer: Footer$1,
+  Close: Close$1
+});
+zod.z.object({
+  value: zod.z.string().min(1)
+});
+const createSource = async (data) => {
+  try {
+    const response = await fetch(`/admin/source`, {
+      method: "POST",
+      body: JSON.stringify(data),
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    const res = await response.json();
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};
+const CreateSource = () => {
+  const form = reactHookForm.useForm();
+  const navigate = reactRouterDom.useNavigate();
+  const handleSubmit = form.handleSubmit(async (values) => {
+    try {
+      await createSource({ name: values.value });
+      ui.toast.success("Source created successfully");
+      navigate("/sources");
+    } catch (error) {
+      ui.toast.error(
+        (error == null ? void 0 : error.message) || "Failed to create source. Please try again."
+      );
+    }
+  });
+  return /* @__PURE__ */ jsxRuntime.jsx(RouteFocusModal, { children: /* @__PURE__ */ jsxRuntime.jsxs(
+    KeyboundForm,
+    {
+      onSubmit: handleSubmit,
+      className: "flex flex-col overflow-hidden",
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx(RouteFocusModal.Header, { children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-end gap-x-2", children: [
+          /* @__PURE__ */ jsxRuntime.jsx(RouteFocusModal.Close, { asChild: true, children: /* @__PURE__ */ jsxRuntime.jsx(ui.Button, { size: "small", variant: "secondary", children: "Cancel" }) }),
+          /* @__PURE__ */ jsxRuntime.jsx(ui.Button, { size: "small", variant: "primary", type: "submit", children: "Create" })
+        ] }) }),
+        /* @__PURE__ */ jsxRuntime.jsxs(RouteFocusModal.Body, { className: "flex flex-col p-20 max-w-[720px] gap-4", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex w-full max-w-[720px] flex-col gap-y-8", children: /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: "Create Source" }),
+            /* @__PURE__ */ jsxRuntime.jsx(ui.Text, { weight: "regular", size: "base", children: "Create a new Source to categorize your products" })
+          ] }) }),
+          /* @__PURE__ */ jsxRuntime.jsx("div", { children: /* @__PURE__ */ jsxRuntime.jsx(
+            reactHookForm.Controller,
+            {
+              rules: {
+                required: "Source name is required"
+              },
+              control: form.control,
+              name: "value",
+              render: ({ field }) => {
+                return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col w-full gap-2", children: [
+                  /* @__PURE__ */ jsxRuntime.jsx(ui.Label, { children: "Value" }),
+                  /* @__PURE__ */ jsxRuntime.jsx(ui.Input, { ...field }),
+                  /* @__PURE__ */ jsxRuntime.jsx(ErrorMessage, { field: field.name, form })
+                ] });
+              }
+            }
+          ) })
+        ] })
+      ]
+    }
+  ) });
+};
+const RouteModalForm = ({
+  form,
+  blockSearchParams: blockSearch = false,
+  children,
+  onClose
+}) => {
+  const {
+    formState: { isDirty }
+  } = form;
+  const blocker = reactRouterDom.useBlocker(({ currentLocation, nextLocation }) => {
+    const { isSubmitSuccessful } = nextLocation.state || {};
+    if (isSubmitSuccessful) {
+      onClose == null ? void 0 : onClose(true);
+      return false;
+    }
+    const isPathChanged = currentLocation.pathname !== nextLocation.pathname;
+    const isSearchChanged = currentLocation.search !== nextLocation.search;
+    if (blockSearch) {
+      const ret2 = isDirty && (isPathChanged || isSearchChanged);
+      if (!ret2) {
+        onClose == null ? void 0 : onClose(isSubmitSuccessful);
+      }
+      return ret2;
+    }
+    const ret = isDirty && isPathChanged;
+    if (!ret) {
+      onClose == null ? void 0 : onClose(isSubmitSuccessful);
+    }
+    return ret;
+  });
+  const handleCancel = () => {
+    var _a;
+    (_a = blocker == null ? void 0 : blocker.reset) == null ? void 0 : _a.call(blocker);
+  };
+  const handleContinue = () => {
+    var _a;
+    (_a = blocker == null ? void 0 : blocker.proceed) == null ? void 0 : _a.call(blocker);
+    onClose == null ? void 0 : onClose(false);
+  };
+  return /* @__PURE__ */ jsxRuntime.jsxs(reactHookForm.Form, { ...form, children: [
+    children,
+    /* @__PURE__ */ jsxRuntime.jsx(ui.Prompt, { open: blocker.state === "blocked", variant: "confirmation", children: /* @__PURE__ */ jsxRuntime.jsxs(ui.Prompt.Content, { children: [
+      /* @__PURE__ */ jsxRuntime.jsxs(ui.Prompt.Header, { children: [
+        /* @__PURE__ */ jsxRuntime.jsx(ui.Prompt.Title, { children: "Are you sure you want to leave this form?" }),
+        /* @__PURE__ */ jsxRuntime.jsx(ui.Prompt.Description, { children: "You have unsaved changes that will be lost if you exit this form." })
+      ] }),
+      /* @__PURE__ */ jsxRuntime.jsxs(ui.Prompt.Footer, { children: [
+        /* @__PURE__ */ jsxRuntime.jsx(ui.Prompt.Cancel, { onClick: handleCancel, type: "button", children: "Cancel" }),
+        /* @__PURE__ */ jsxRuntime.jsx(ui.Prompt.Action, { onClick: handleContinue, type: "button", children: "Continue" })
+      ] })
+    ] }) })
+  ] });
+};
+const Root = ({ prev = "..", children }) => {
+  const navigate = reactRouterDom.useNavigate();
+  const [open, setOpen] = React.useState(false);
+  const [stackedModalOpen, onStackedModalOpen] = React.useState(false);
+  React.useEffect(() => {
+    setOpen(true);
+    return () => {
+      setOpen(false);
+      onStackedModalOpen(false);
+    };
+  }, []);
+  const handleOpenChange = (open2) => {
+    if (!open2) {
+      document.body.style.pointerEvents = "auto";
+      navigate(prev, { replace: true });
+      return;
+    }
+    setOpen(open2);
+  };
+  return /* @__PURE__ */ jsxRuntime.jsx(ui.Drawer, { open, onOpenChange: handleOpenChange, children: /* @__PURE__ */ jsxRuntime.jsx(RouteModalProvider, { prev, children: /* @__PURE__ */ jsxRuntime.jsx(StackedModalProvider, { onOpenChange: onStackedModalOpen, children: /* @__PURE__ */ jsxRuntime.jsx(
+    ui.Drawer.Content,
+    {
+      "aria-describedby": void 0,
+      className: ui.clx({
+        "!bg-ui-bg-disabled !inset-y-5 !right-5": stackedModalOpen
+      }),
+      children
+    }
+  ) }) }) });
+};
+const Header = ui.Drawer.Header;
+const Title = ui.Drawer.Title;
+const Description = ui.Drawer.Description;
+const Body = ui.Drawer.Body;
+const Footer = ui.Drawer.Footer;
+const Close = ui.Drawer.Close;
+const Form = RouteModalForm;
+const RouteDrawer = Object.assign(Root, {
+  Header,
+  Title,
+  Body,
+  Description,
+  Footer,
+  Close,
+  Form
+});
+const editSource = async (data) => {
+  try {
+    const response = await fetch(`/admin/source/${data.id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    const res = await response.json();
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};
+const SourceEdit = () => {
+  const navigate = reactRouterDom.useNavigate();
+  const { state } = reactRouterDom.useLocation();
+  const form = reactHookForm.useForm({
+    defaultValues: {
+      name: state.name
+    }
+  });
+  const handleSubmit = form.handleSubmit(async (data) => {
+    try {
+      await editSource({
+        name: data.name,
+        id: state.id
+      });
+      ui.toast.success("Source updated successfully");
+      navigate(`/sources`);
+    } catch (error) {
+      ui.toast.error(
+        (error == null ? void 0 : error.message) || "Failed to update source. Please try again."
+      );
+    }
+  });
+  return /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer, { children: /* @__PURE__ */ jsxRuntime.jsxs(
+    KeyboundForm,
+    {
+      onSubmit: handleSubmit,
+      className: "flex flex-col overflow-hidden flex-1",
+      children: [
+        /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer.Header, { children: /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: "Edit Source" }) }),
+        /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer.Body, { className: "flex flex-1 flex-col gap-y-8 overflow-y-auto", children: /* @__PURE__ */ jsxRuntime.jsx(
+          reactHookForm.Controller,
+          {
+            rules: {
+              required: "Source name is required"
+            },
+            control: form.control,
+            name: "name",
+            render: ({ field }) => {
+              return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col w-full gap-2", children: [
+                /* @__PURE__ */ jsxRuntime.jsx(ui.Label, { children: "Name" }),
+                /* @__PURE__ */ jsxRuntime.jsx(ui.Input, { ...field }),
+                /* @__PURE__ */ jsxRuntime.jsx(ErrorMessage, { field: field.name, form })
+              ] });
+            }
+          }
+        ) }),
+        /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer.Footer, { children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-end gap-x-2", children: [
+          /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer.Close, { asChild: true, children: /* @__PURE__ */ jsxRuntime.jsx(ui.Button, { size: "small", variant: "secondary", children: "Cancel" }) }),
+          /* @__PURE__ */ jsxRuntime.jsx(ui.Button, { size: "small", type: "submit", children: "Save" })
+        ] }) })
+      ]
+    }
+  ) });
+};
 const SourceGeneralSection = ({ source }) => {
   return /* @__PURE__ */ jsxRuntime.jsxs(ui.Container, { className: "flex items-center justify-between", children: [
     /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: source.name }),
@@ -964,381 +1339,6 @@ const SourceDetail = () => {
     /* @__PURE__ */ jsxRuntime.jsx(SourceProductSection, { source: state })
   ] });
 };
-const RouteModalForm = ({
-  form,
-  blockSearchParams: blockSearch = false,
-  children,
-  onClose
-}) => {
-  const {
-    formState: { isDirty }
-  } = form;
-  const blocker = reactRouterDom.useBlocker(({ currentLocation, nextLocation }) => {
-    const { isSubmitSuccessful } = nextLocation.state || {};
-    if (isSubmitSuccessful) {
-      onClose == null ? void 0 : onClose(true);
-      return false;
-    }
-    const isPathChanged = currentLocation.pathname !== nextLocation.pathname;
-    const isSearchChanged = currentLocation.search !== nextLocation.search;
-    if (blockSearch) {
-      const ret2 = isDirty && (isPathChanged || isSearchChanged);
-      if (!ret2) {
-        onClose == null ? void 0 : onClose(isSubmitSuccessful);
-      }
-      return ret2;
-    }
-    const ret = isDirty && isPathChanged;
-    if (!ret) {
-      onClose == null ? void 0 : onClose(isSubmitSuccessful);
-    }
-    return ret;
-  });
-  const handleCancel = () => {
-    var _a;
-    (_a = blocker == null ? void 0 : blocker.reset) == null ? void 0 : _a.call(blocker);
-  };
-  const handleContinue = () => {
-    var _a;
-    (_a = blocker == null ? void 0 : blocker.proceed) == null ? void 0 : _a.call(blocker);
-    onClose == null ? void 0 : onClose(false);
-  };
-  return /* @__PURE__ */ jsxRuntime.jsxs(reactHookForm.Form, { ...form, children: [
-    children,
-    /* @__PURE__ */ jsxRuntime.jsx(ui.Prompt, { open: blocker.state === "blocked", variant: "confirmation", children: /* @__PURE__ */ jsxRuntime.jsxs(ui.Prompt.Content, { children: [
-      /* @__PURE__ */ jsxRuntime.jsxs(ui.Prompt.Header, { children: [
-        /* @__PURE__ */ jsxRuntime.jsx(ui.Prompt.Title, { children: "Are you sure you want to leave this form?" }),
-        /* @__PURE__ */ jsxRuntime.jsx(ui.Prompt.Description, { children: "You have unsaved changes that will be lost if you exit this form." })
-      ] }),
-      /* @__PURE__ */ jsxRuntime.jsxs(ui.Prompt.Footer, { children: [
-        /* @__PURE__ */ jsxRuntime.jsx(ui.Prompt.Cancel, { onClick: handleCancel, type: "button", children: "Cancel" }),
-        /* @__PURE__ */ jsxRuntime.jsx(ui.Prompt.Action, { onClick: handleContinue, type: "button", children: "Continue" })
-      ] })
-    ] }) })
-  ] });
-};
-const RouteModalProviderContext = React.createContext(null);
-const RouteModalProvider = ({
-  prev,
-  children
-}) => {
-  const navigate = reactRouterDom.useNavigate();
-  const [closeOnEscape, setCloseOnEscape] = React.useState(true);
-  const handleSuccess = React.useCallback(
-    (path) => {
-      const to = path || prev;
-      navigate(to, { replace: true, state: { isSubmitSuccessful: true } });
-    },
-    [navigate, prev]
-  );
-  const value = React.useMemo(
-    () => ({
-      handleSuccess,
-      setCloseOnEscape,
-      __internal: { closeOnEscape }
-    }),
-    [handleSuccess, setCloseOnEscape, closeOnEscape]
-  );
-  return /* @__PURE__ */ jsxRuntime.jsx(RouteModalProviderContext.Provider, { value, children });
-};
-const StackedModalContext = React.createContext(null);
-const StackedModalProvider = ({
-  children,
-  onOpenChange
-}) => {
-  const [state, setState] = React.useState({});
-  const getIsOpen = (id) => {
-    return state[id] || false;
-  };
-  const setIsOpen = (id, open) => {
-    setState((prevState) => ({
-      ...prevState,
-      [id]: open
-    }));
-    onOpenChange(open);
-  };
-  const register = (id) => {
-    setState((prevState) => ({
-      ...prevState,
-      [id]: false
-    }));
-  };
-  const unregister = (id) => {
-    setState((prevState) => {
-      const newState = { ...prevState };
-      delete newState[id];
-      return newState;
-    });
-  };
-  return /* @__PURE__ */ jsxRuntime.jsx(
-    StackedModalContext.Provider,
-    {
-      value: {
-        getIsOpen,
-        setIsOpen,
-        register,
-        unregister
-      },
-      children
-    }
-  );
-};
-const Root$1 = ({ prev = "..", children }) => {
-  const navigate = reactRouterDom.useNavigate();
-  const [open, setOpen] = React.useState(false);
-  const [stackedModalOpen, onStackedModalOpen] = React.useState(false);
-  React.useEffect(() => {
-    setOpen(true);
-    return () => {
-      setOpen(false);
-      onStackedModalOpen(false);
-    };
-  }, []);
-  const handleOpenChange = (open2) => {
-    if (!open2) {
-      document.body.style.pointerEvents = "auto";
-      navigate(prev, { replace: true });
-      return;
-    }
-    setOpen(open2);
-  };
-  return /* @__PURE__ */ jsxRuntime.jsx(ui.Drawer, { open, onOpenChange: handleOpenChange, children: /* @__PURE__ */ jsxRuntime.jsx(RouteModalProvider, { prev, children: /* @__PURE__ */ jsxRuntime.jsx(StackedModalProvider, { onOpenChange: onStackedModalOpen, children: /* @__PURE__ */ jsxRuntime.jsx(
-    ui.Drawer.Content,
-    {
-      "aria-describedby": void 0,
-      className: ui.clx({
-        "!bg-ui-bg-disabled !inset-y-5 !right-5": stackedModalOpen
-      }),
-      children
-    }
-  ) }) }) });
-};
-const Header$1 = ui.Drawer.Header;
-const Title$1 = ui.Drawer.Title;
-const Description$1 = ui.Drawer.Description;
-const Body$1 = ui.Drawer.Body;
-const Footer$1 = ui.Drawer.Footer;
-const Close$1 = ui.Drawer.Close;
-const Form = RouteModalForm;
-const RouteDrawer = Object.assign(Root$1, {
-  Header: Header$1,
-  Title: Title$1,
-  Body: Body$1,
-  Description: Description$1,
-  Footer: Footer$1,
-  Close: Close$1,
-  Form
-});
-const editSource = async (data) => {
-  try {
-    const response = await fetch(`/admin/source/${data.id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    const res = await response.json();
-    return res;
-  } catch (error) {
-    throw error;
-  }
-};
-const SourceEdit = () => {
-  const navigate = reactRouterDom.useNavigate();
-  const { state } = reactRouterDom.useLocation();
-  const form = reactHookForm.useForm({
-    defaultValues: {
-      name: state.name
-    }
-  });
-  const handleSubmit = form.handleSubmit(async (data) => {
-    try {
-      await editSource({
-        name: data.name,
-        id: state.id
-      });
-      ui.toast.success("Source updated successfully");
-      navigate(`/sources`);
-    } catch (error) {
-      ui.toast.error(
-        (error == null ? void 0 : error.message) || "Failed to update source. Please try again."
-      );
-    }
-  });
-  return /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer, { children: /* @__PURE__ */ jsxRuntime.jsxs(
-    KeyboundForm,
-    {
-      onSubmit: handleSubmit,
-      className: "flex flex-col overflow-hidden flex-1",
-      children: [
-        /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer.Header, { children: /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: "Edit Source" }) }),
-        /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer.Body, { className: "flex flex-1 flex-col gap-y-8 overflow-y-auto", children: /* @__PURE__ */ jsxRuntime.jsx(
-          reactHookForm.Controller,
-          {
-            rules: {
-              required: "Source name is required"
-            },
-            control: form.control,
-            name: "name",
-            render: ({ field }) => {
-              return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col w-full gap-2", children: [
-                /* @__PURE__ */ jsxRuntime.jsx(ui.Label, { children: "Name" }),
-                /* @__PURE__ */ jsxRuntime.jsx(ui.Input, { ...field }),
-                /* @__PURE__ */ jsxRuntime.jsx(ErrorMessage, { field: field.name, form })
-              ] });
-            }
-          }
-        ) }),
-        /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer.Footer, { children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-end gap-x-2", children: [
-          /* @__PURE__ */ jsxRuntime.jsx(RouteDrawer.Close, { asChild: true, children: /* @__PURE__ */ jsxRuntime.jsx(ui.Button, { size: "small", variant: "secondary", children: "Cancel" }) }),
-          /* @__PURE__ */ jsxRuntime.jsx(ui.Button, { size: "small", type: "submit", children: "Save" })
-        ] }) })
-      ]
-    }
-  ) });
-};
-const useRouteModal = () => {
-  const context = React.useContext(RouteModalProviderContext);
-  if (!context) {
-    throw new Error("useRouteModal must be used within a RouteModalProvider");
-  }
-  return context;
-};
-const useStateAwareTo = (prev) => {
-  const location = reactRouterDom.useLocation();
-  const to = React.useMemo(() => {
-    var _a;
-    const params = (_a = location.state) == null ? void 0 : _a.restore_params;
-    if (!params) {
-      return prev;
-    }
-    return `${prev}?${params.toString()}`;
-  }, [location.state, prev]);
-  return to;
-};
-const Root = ({ prev = "..", children }) => {
-  const navigate = reactRouterDom.useNavigate();
-  const [open, setOpen] = React.useState(false);
-  const [stackedModalOpen, onStackedModalOpen] = React.useState(false);
-  const to = useStateAwareTo(prev);
-  React.useEffect(() => {
-    setOpen(true);
-    return () => {
-      setOpen(false);
-      onStackedModalOpen(false);
-    };
-  }, []);
-  const handleOpenChange = (open2) => {
-    if (!open2) {
-      document.body.style.pointerEvents = "auto";
-      navigate(to, { replace: true });
-      return;
-    }
-    setOpen(open2);
-  };
-  return /* @__PURE__ */ jsxRuntime.jsx(ui.FocusModal, { open, onOpenChange: handleOpenChange, children: /* @__PURE__ */ jsxRuntime.jsx(RouteModalProvider, { prev: to, children: /* @__PURE__ */ jsxRuntime.jsx(StackedModalProvider, { onOpenChange: onStackedModalOpen, children: /* @__PURE__ */ jsxRuntime.jsx(Content, { stackedModalOpen, children }) }) }) });
-};
-const Content = ({ stackedModalOpen, children }) => {
-  const { __internal } = useRouteModal();
-  const shouldPreventClose = !__internal.closeOnEscape;
-  return /* @__PURE__ */ jsxRuntime.jsx(
-    ui.FocusModal.Content,
-    {
-      onEscapeKeyDown: shouldPreventClose ? (e) => {
-        e.preventDefault();
-      } : void 0,
-      className: ui.clx({
-        "!bg-ui-bg-disabled !inset-x-5 !inset-y-3": stackedModalOpen
-      }),
-      children
-    }
-  );
-};
-const Header = ui.FocusModal.Header;
-const Title = ui.FocusModal.Title;
-const Description = ui.FocusModal.Description;
-const Footer = ui.FocusModal.Footer;
-const Body = ui.FocusModal.Body;
-const Close = ui.FocusModal.Close;
-const RouteFocusModal = Object.assign(Root, {
-  Header,
-  Title,
-  Body,
-  Description,
-  Footer,
-  Close
-});
-zod.z.object({
-  value: zod.z.string().min(1)
-});
-const createSource = async (data) => {
-  try {
-    const response = await fetch(`/admin/source`, {
-      method: "POST",
-      body: JSON.stringify(data),
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    const res = await response.json();
-    return res;
-  } catch (error) {
-    throw error;
-  }
-};
-const CreateSource = () => {
-  const form = reactHookForm.useForm();
-  const navigate = reactRouterDom.useNavigate();
-  const handleSubmit = form.handleSubmit(async (values) => {
-    try {
-      await createSource({ name: values.value });
-      ui.toast.success("Source created successfully");
-      navigate("/sources");
-    } catch (error) {
-      ui.toast.error(
-        (error == null ? void 0 : error.message) || "Failed to create source. Please try again."
-      );
-    }
-  });
-  return /* @__PURE__ */ jsxRuntime.jsx(RouteFocusModal, { children: /* @__PURE__ */ jsxRuntime.jsxs(
-    KeyboundForm,
-    {
-      onSubmit: handleSubmit,
-      className: "flex flex-col overflow-hidden",
-      children: [
-        /* @__PURE__ */ jsxRuntime.jsx(RouteFocusModal.Header, { children: /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex items-center justify-end gap-x-2", children: [
-          /* @__PURE__ */ jsxRuntime.jsx(RouteFocusModal.Close, { asChild: true, children: /* @__PURE__ */ jsxRuntime.jsx(ui.Button, { size: "small", variant: "secondary", children: "Cancel" }) }),
-          /* @__PURE__ */ jsxRuntime.jsx(ui.Button, { size: "small", variant: "primary", type: "submit", children: "Create" })
-        ] }) }),
-        /* @__PURE__ */ jsxRuntime.jsxs(RouteFocusModal.Body, { className: "flex flex-col p-20 max-w-[720px] gap-4", children: [
-          /* @__PURE__ */ jsxRuntime.jsx("div", { className: "flex w-full max-w-[720px] flex-col gap-y-8", children: /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntime.jsx(ui.Heading, { children: "Create Source" }),
-            /* @__PURE__ */ jsxRuntime.jsx(ui.Text, { weight: "regular", size: "base", children: "Create a new Source to categorize your products" })
-          ] }) }),
-          /* @__PURE__ */ jsxRuntime.jsx("div", { children: /* @__PURE__ */ jsxRuntime.jsx(
-            reactHookForm.Controller,
-            {
-              rules: {
-                required: "Source name is required"
-              },
-              control: form.control,
-              name: "value",
-              render: ({ field }) => {
-                return /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "flex flex-col w-full gap-2", children: [
-                  /* @__PURE__ */ jsxRuntime.jsx(ui.Label, { children: "Value" }),
-                  /* @__PURE__ */ jsxRuntime.jsx(ui.Input, { ...field }),
-                  /* @__PURE__ */ jsxRuntime.jsx(ErrorMessage, { field: field.name, form })
-                ] });
-              }
-            }
-          ) })
-        ] })
-      ]
-    }
-  ) });
-};
 const widgetModule = { widgets: [
   {
     Component: SourceWidget,
@@ -1352,20 +1352,20 @@ const routeModule = {
       path: "/sources"
     },
     {
-      Component: SourceDetail,
-      path: "/sources/detail"
+      Component: CreateSource,
+      path: "/sources/create"
     },
     {
       Component: SourceEdit,
       path: "/sources/edit"
     },
     {
-      Component: CreateSource,
-      path: "/sources/create"
-    },
-    {
       Component: SourceList,
       path: "/sources/list"
+    },
+    {
+      Component: SourceDetail,
+      path: "/sources/detail"
     }
   ]
 };
