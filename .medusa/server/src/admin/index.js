@@ -1360,12 +1360,12 @@ const routeModule = {
       path: "/sources/edit"
     },
     {
-      Component: CreateSource,
-      path: "/sources/create"
-    },
-    {
       Component: SourceList,
       path: "/sources/list"
+    },
+    {
+      Component: CreateSource,
+      path: "/sources/create"
     }
   ]
 };
