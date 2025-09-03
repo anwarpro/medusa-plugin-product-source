@@ -1,14 +1,14 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { defineWidgetConfig, defineRouteConfig } from "@medusajs/admin-sdk";
-import { clx, Text, toast, Heading, Drawer, Button, Label, Container, Tooltip, Badge, usePrompt, DropdownMenu, IconButton, createDataTableColumnHelper, useDataTable, DataTable, FocusModal, Input, Prompt } from "@medusajs/ui";
+import { clx, Text, toast, Heading, Drawer, Button, Label, Container, Tooltip, Badge, usePrompt, DropdownMenu, IconButton, createDataTableColumnHelper, useDataTable, DataTable, Prompt, Input, FocusModal } from "@medusajs/ui";
 import { useParams, useNavigate, Link, useLocation, useBlocker } from "react-router-dom";
 import Medusa from "@medusajs/js-sdk";
 import { useQuery } from "@tanstack/react-query";
 import { useForm, Controller, Form as Form$1 } from "react-hook-form";
 import { TrianglesMini, PencilSquare, EllipsisHorizontal, Trash, Photo } from "@medusajs/icons";
 import React, { useState, useRef, useEffect, useMemo, createContext, useCallback, useContext } from "react";
-import { z } from "zod";
 import { createColumnHelper } from "@tanstack/react-table";
+import { z } from "zod";
 const SectionRow = ({
   title,
   value,
@@ -746,213 +746,6 @@ const SourcePage = () => {
 const config = defineRouteConfig({
   label: "Source"
 });
-const RouteModalProviderContext = createContext(null);
-const RouteModalProvider = ({
-  prev,
-  children
-}) => {
-  const navigate = useNavigate();
-  const [closeOnEscape, setCloseOnEscape] = useState(true);
-  const handleSuccess = useCallback(
-    (path) => {
-      const to = path || prev;
-      navigate(to, { replace: true, state: { isSubmitSuccessful: true } });
-    },
-    [navigate, prev]
-  );
-  const value = useMemo(
-    () => ({
-      handleSuccess,
-      setCloseOnEscape,
-      __internal: { closeOnEscape }
-    }),
-    [handleSuccess, setCloseOnEscape, closeOnEscape]
-  );
-  return /* @__PURE__ */ jsx(RouteModalProviderContext.Provider, { value, children });
-};
-const useRouteModal = () => {
-  const context = useContext(RouteModalProviderContext);
-  if (!context) {
-    throw new Error("useRouteModal must be used within a RouteModalProvider");
-  }
-  return context;
-};
-const StackedModalContext = createContext(null);
-const StackedModalProvider = ({
-  children,
-  onOpenChange
-}) => {
-  const [state, setState] = useState({});
-  const getIsOpen = (id) => {
-    return state[id] || false;
-  };
-  const setIsOpen = (id, open) => {
-    setState((prevState) => ({
-      ...prevState,
-      [id]: open
-    }));
-    onOpenChange(open);
-  };
-  const register = (id) => {
-    setState((prevState) => ({
-      ...prevState,
-      [id]: false
-    }));
-  };
-  const unregister = (id) => {
-    setState((prevState) => {
-      const newState = { ...prevState };
-      delete newState[id];
-      return newState;
-    });
-  };
-  return /* @__PURE__ */ jsx(
-    StackedModalContext.Provider,
-    {
-      value: {
-        getIsOpen,
-        setIsOpen,
-        register,
-        unregister
-      },
-      children
-    }
-  );
-};
-const useStateAwareTo = (prev) => {
-  const location = useLocation();
-  const to = useMemo(() => {
-    var _a;
-    const params = (_a = location.state) == null ? void 0 : _a.restore_params;
-    if (!params) {
-      return prev;
-    }
-    return `${prev}?${params.toString()}`;
-  }, [location.state, prev]);
-  return to;
-};
-const Root$1 = ({ prev = "..", children }) => {
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const [stackedModalOpen, onStackedModalOpen] = useState(false);
-  const to = useStateAwareTo(prev);
-  useEffect(() => {
-    setOpen(true);
-    return () => {
-      setOpen(false);
-      onStackedModalOpen(false);
-    };
-  }, []);
-  const handleOpenChange = (open2) => {
-    if (!open2) {
-      document.body.style.pointerEvents = "auto";
-      navigate(to, { replace: true });
-      return;
-    }
-    setOpen(open2);
-  };
-  return /* @__PURE__ */ jsx(FocusModal, { open, onOpenChange: handleOpenChange, children: /* @__PURE__ */ jsx(RouteModalProvider, { prev: to, children: /* @__PURE__ */ jsx(StackedModalProvider, { onOpenChange: onStackedModalOpen, children: /* @__PURE__ */ jsx(Content, { stackedModalOpen, children }) }) }) });
-};
-const Content = ({ stackedModalOpen, children }) => {
-  const { __internal } = useRouteModal();
-  const shouldPreventClose = !__internal.closeOnEscape;
-  return /* @__PURE__ */ jsx(
-    FocusModal.Content,
-    {
-      onEscapeKeyDown: shouldPreventClose ? (e) => {
-        e.preventDefault();
-      } : void 0,
-      className: clx({
-        "!bg-ui-bg-disabled !inset-x-5 !inset-y-3": stackedModalOpen
-      }),
-      children
-    }
-  );
-};
-const Header$1 = FocusModal.Header;
-const Title$1 = FocusModal.Title;
-const Description$1 = FocusModal.Description;
-const Footer$1 = FocusModal.Footer;
-const Body$1 = FocusModal.Body;
-const Close$1 = FocusModal.Close;
-const RouteFocusModal = Object.assign(Root$1, {
-  Header: Header$1,
-  Title: Title$1,
-  Body: Body$1,
-  Description: Description$1,
-  Footer: Footer$1,
-  Close: Close$1
-});
-z.object({
-  value: z.string().min(1)
-});
-const createSource = async (data) => {
-  try {
-    const response = await fetch(`/admin/source`, {
-      method: "POST",
-      body: JSON.stringify(data),
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    const res = await response.json();
-    return res;
-  } catch (error) {
-    throw error;
-  }
-};
-const CreateSource = () => {
-  const form = useForm();
-  const navigate = useNavigate();
-  const handleSubmit = form.handleSubmit(async (values) => {
-    try {
-      await createSource({ name: values.value });
-      toast.success("Source created successfully");
-      navigate("/sources");
-    } catch (error) {
-      toast.error(
-        (error == null ? void 0 : error.message) || "Failed to create source. Please try again."
-      );
-    }
-  });
-  return /* @__PURE__ */ jsx(RouteFocusModal, { children: /* @__PURE__ */ jsxs(
-    KeyboundForm,
-    {
-      onSubmit: handleSubmit,
-      className: "flex flex-col overflow-hidden",
-      children: [
-        /* @__PURE__ */ jsx(RouteFocusModal.Header, { children: /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-end gap-x-2", children: [
-          /* @__PURE__ */ jsx(RouteFocusModal.Close, { asChild: true, children: /* @__PURE__ */ jsx(Button, { size: "small", variant: "secondary", children: "Cancel" }) }),
-          /* @__PURE__ */ jsx(Button, { size: "small", variant: "primary", type: "submit", children: "Create" })
-        ] }) }),
-        /* @__PURE__ */ jsxs(RouteFocusModal.Body, { className: "flex flex-col p-20 max-w-[720px] gap-4", children: [
-          /* @__PURE__ */ jsx("div", { className: "flex w-full max-w-[720px] flex-col gap-y-8", children: /* @__PURE__ */ jsxs("div", { children: [
-            /* @__PURE__ */ jsx(Heading, { children: "Create Source" }),
-            /* @__PURE__ */ jsx(Text, { weight: "regular", size: "base", children: "Create a new Source to categorize your products" })
-          ] }) }),
-          /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(
-            Controller,
-            {
-              rules: {
-                required: "Source name is required"
-              },
-              control: form.control,
-              name: "value",
-              render: ({ field }) => {
-                return /* @__PURE__ */ jsxs("div", { className: "flex flex-col w-full gap-2", children: [
-                  /* @__PURE__ */ jsx(Label, { children: "Value" }),
-                  /* @__PURE__ */ jsx(Input, { ...field }),
-                  /* @__PURE__ */ jsx(ErrorMessage, { field: field.name, form })
-                ] });
-              }
-            }
-          ) })
-        ] })
-      ]
-    }
-  ) });
-};
 const SourceGeneralSection = ({ source }) => {
   return /* @__PURE__ */ jsxs(Container, { className: "flex items-center justify-between", children: [
     /* @__PURE__ */ jsx(Heading, { children: source.name }),
@@ -1220,7 +1013,73 @@ const RouteModalForm = ({
     ] }) })
   ] });
 };
-const Root = ({ prev = "..", children }) => {
+const RouteModalProviderContext = createContext(null);
+const RouteModalProvider = ({
+  prev,
+  children
+}) => {
+  const navigate = useNavigate();
+  const [closeOnEscape, setCloseOnEscape] = useState(true);
+  const handleSuccess = useCallback(
+    (path) => {
+      const to = path || prev;
+      navigate(to, { replace: true, state: { isSubmitSuccessful: true } });
+    },
+    [navigate, prev]
+  );
+  const value = useMemo(
+    () => ({
+      handleSuccess,
+      setCloseOnEscape,
+      __internal: { closeOnEscape }
+    }),
+    [handleSuccess, setCloseOnEscape, closeOnEscape]
+  );
+  return /* @__PURE__ */ jsx(RouteModalProviderContext.Provider, { value, children });
+};
+const StackedModalContext = createContext(null);
+const StackedModalProvider = ({
+  children,
+  onOpenChange
+}) => {
+  const [state, setState] = useState({});
+  const getIsOpen = (id) => {
+    return state[id] || false;
+  };
+  const setIsOpen = (id, open) => {
+    setState((prevState) => ({
+      ...prevState,
+      [id]: open
+    }));
+    onOpenChange(open);
+  };
+  const register = (id) => {
+    setState((prevState) => ({
+      ...prevState,
+      [id]: false
+    }));
+  };
+  const unregister = (id) => {
+    setState((prevState) => {
+      const newState = { ...prevState };
+      delete newState[id];
+      return newState;
+    });
+  };
+  return /* @__PURE__ */ jsx(
+    StackedModalContext.Provider,
+    {
+      value: {
+        getIsOpen,
+        setIsOpen,
+        register,
+        unregister
+      },
+      children
+    }
+  );
+};
+const Root$1 = ({ prev = "..", children }) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [stackedModalOpen, onStackedModalOpen] = useState(false);
@@ -1250,20 +1109,20 @@ const Root = ({ prev = "..", children }) => {
     }
   ) }) }) });
 };
-const Header = Drawer.Header;
-const Title = Drawer.Title;
-const Description = Drawer.Description;
-const Body = Drawer.Body;
-const Footer = Drawer.Footer;
-const Close = Drawer.Close;
+const Header$1 = Drawer.Header;
+const Title$1 = Drawer.Title;
+const Description$1 = Drawer.Description;
+const Body$1 = Drawer.Body;
+const Footer$1 = Drawer.Footer;
+const Close$1 = Drawer.Close;
 const Form = RouteModalForm;
-const RouteDrawer = Object.assign(Root, {
-  Header,
-  Title,
-  Body,
-  Description,
-  Footer,
-  Close,
+const RouteDrawer = Object.assign(Root$1, {
+  Header: Header$1,
+  Title: Title$1,
+  Body: Body$1,
+  Description: Description$1,
+  Footer: Footer$1,
+  Close: Close$1,
   Form
 });
 const editSource = async (data) => {
@@ -1335,6 +1194,147 @@ const SourceEdit = () => {
     }
   ) });
 };
+const useRouteModal = () => {
+  const context = useContext(RouteModalProviderContext);
+  if (!context) {
+    throw new Error("useRouteModal must be used within a RouteModalProvider");
+  }
+  return context;
+};
+const useStateAwareTo = (prev) => {
+  const location = useLocation();
+  const to = useMemo(() => {
+    var _a;
+    const params = (_a = location.state) == null ? void 0 : _a.restore_params;
+    if (!params) {
+      return prev;
+    }
+    return `${prev}?${params.toString()}`;
+  }, [location.state, prev]);
+  return to;
+};
+const Root = ({ prev = "..", children }) => {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [stackedModalOpen, onStackedModalOpen] = useState(false);
+  const to = useStateAwareTo(prev);
+  useEffect(() => {
+    setOpen(true);
+    return () => {
+      setOpen(false);
+      onStackedModalOpen(false);
+    };
+  }, []);
+  const handleOpenChange = (open2) => {
+    if (!open2) {
+      document.body.style.pointerEvents = "auto";
+      navigate(to, { replace: true });
+      return;
+    }
+    setOpen(open2);
+  };
+  return /* @__PURE__ */ jsx(FocusModal, { open, onOpenChange: handleOpenChange, children: /* @__PURE__ */ jsx(RouteModalProvider, { prev: to, children: /* @__PURE__ */ jsx(StackedModalProvider, { onOpenChange: onStackedModalOpen, children: /* @__PURE__ */ jsx(Content, { stackedModalOpen, children }) }) }) });
+};
+const Content = ({ stackedModalOpen, children }) => {
+  const { __internal } = useRouteModal();
+  const shouldPreventClose = !__internal.closeOnEscape;
+  return /* @__PURE__ */ jsx(
+    FocusModal.Content,
+    {
+      onEscapeKeyDown: shouldPreventClose ? (e) => {
+        e.preventDefault();
+      } : void 0,
+      className: clx({
+        "!bg-ui-bg-disabled !inset-x-5 !inset-y-3": stackedModalOpen
+      }),
+      children
+    }
+  );
+};
+const Header = FocusModal.Header;
+const Title = FocusModal.Title;
+const Description = FocusModal.Description;
+const Footer = FocusModal.Footer;
+const Body = FocusModal.Body;
+const Close = FocusModal.Close;
+const RouteFocusModal = Object.assign(Root, {
+  Header,
+  Title,
+  Body,
+  Description,
+  Footer,
+  Close
+});
+z.object({
+  value: z.string().min(1)
+});
+const createSource = async (data) => {
+  try {
+    const response = await fetch(`/admin/source`, {
+      method: "POST",
+      body: JSON.stringify(data),
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    const res = await response.json();
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};
+const CreateSource = () => {
+  const form = useForm();
+  const navigate = useNavigate();
+  const handleSubmit = form.handleSubmit(async (values) => {
+    try {
+      await createSource({ name: values.value });
+      toast.success("Source created successfully");
+      navigate("/sources");
+    } catch (error) {
+      toast.error(
+        (error == null ? void 0 : error.message) || "Failed to create source. Please try again."
+      );
+    }
+  });
+  return /* @__PURE__ */ jsx(RouteFocusModal, { children: /* @__PURE__ */ jsxs(
+    KeyboundForm,
+    {
+      onSubmit: handleSubmit,
+      className: "flex flex-col overflow-hidden",
+      children: [
+        /* @__PURE__ */ jsx(RouteFocusModal.Header, { children: /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-end gap-x-2", children: [
+          /* @__PURE__ */ jsx(RouteFocusModal.Close, { asChild: true, children: /* @__PURE__ */ jsx(Button, { size: "small", variant: "secondary", children: "Cancel" }) }),
+          /* @__PURE__ */ jsx(Button, { size: "small", variant: "primary", type: "submit", children: "Create" })
+        ] }) }),
+        /* @__PURE__ */ jsxs(RouteFocusModal.Body, { className: "flex flex-col p-20 max-w-[720px] gap-4", children: [
+          /* @__PURE__ */ jsx("div", { className: "flex w-full max-w-[720px] flex-col gap-y-8", children: /* @__PURE__ */ jsxs("div", { children: [
+            /* @__PURE__ */ jsx(Heading, { children: "Create Source" }),
+            /* @__PURE__ */ jsx(Text, { weight: "regular", size: "base", children: "Create a new Source to categorize your products" })
+          ] }) }),
+          /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(
+            Controller,
+            {
+              rules: {
+                required: "Source name is required"
+              },
+              control: form.control,
+              name: "value",
+              render: ({ field }) => {
+                return /* @__PURE__ */ jsxs("div", { className: "flex flex-col w-full gap-2", children: [
+                  /* @__PURE__ */ jsx(Label, { children: "Value" }),
+                  /* @__PURE__ */ jsx(Input, { ...field }),
+                  /* @__PURE__ */ jsx(ErrorMessage, { field: field.name, form })
+                ] });
+              }
+            }
+          ) })
+        ] })
+      ]
+    }
+  ) });
+};
 const widgetModule = { widgets: [
   {
     Component: SourceWidget,
@@ -1348,16 +1348,16 @@ const routeModule = {
       path: "/sources"
     },
     {
-      Component: CreateSource,
-      path: "/sources/create"
-    },
-    {
       Component: SourceDetail,
       path: "/sources/detail"
     },
     {
       Component: SourceEdit,
       path: "/sources/edit"
+    },
+    {
+      Component: CreateSource,
+      path: "/sources/create"
     },
     {
       Component: SourceList,
