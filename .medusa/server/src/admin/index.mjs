@@ -372,7 +372,7 @@ const AddProductSource = () => {
         }
       }
     ),
-    queryKey: ["products"],
+    queryKey: ["productsSource"],
     refetchOnMount: "always"
   });
   const { data: sources } = useQuery({
@@ -477,7 +477,7 @@ const SourceWidget = () => {
         }
       }
     ),
-    queryKey: ["products"],
+    queryKey: ["productsSource"],
     refetchOnMount: "always"
   });
   return /* @__PURE__ */ jsxs(Container, { className: "divide-y p-0", children: [
@@ -485,7 +485,7 @@ const SourceWidget = () => {
     /* @__PURE__ */ jsx(
       SectionRow,
       {
-        title: "Source",
+        title: "Product Source",
         value: ((_b = (_a = data == null ? void 0 : data.product) == null ? void 0 : _a.source) == null ? void 0 : _b.name) ? /* @__PURE__ */ jsx(OrganizationTag, { label: (_c = data == null ? void 0 : data.product) == null ? void 0 : _c.source.name, to: `/sources` }) : void 0
       }
     )

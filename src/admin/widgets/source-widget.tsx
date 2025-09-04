@@ -23,7 +23,7 @@ const SourceWidget = () => {
           },
         }
       ),
-    queryKey: ["products"],
+    queryKey: ["productsSource"],
     refetchOnMount: "always",
   });
 
@@ -31,7 +31,7 @@ const SourceWidget = () => {
     <Container className="divide-y p-0">
       <AddProductSource />
       <SectionRow
-        title={"Source"}
+        title={"Product Source"}
         value={
           data?.product?.source?.name ? (
             <OrganizationTag label={data?.product?.source.name} to={`/sources`} />

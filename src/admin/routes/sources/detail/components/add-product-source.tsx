@@ -26,7 +26,7 @@ const AddProductSource = () => {
           },
         }
       ),
-    queryKey: ["products"],
+    queryKey: ["productsSource"],
     refetchOnMount: "always",
   });
 
